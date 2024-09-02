@@ -4,7 +4,7 @@ import dispatchService from './dispatch.service'
 export const Utils = new ServerUtils();
 const exp = global.exports
 
-RegisterCommand("dispatchduty", (src: number) => {
+function addToDispatch(src: number) {
   if (!dispatchService.isPlayerDispatcher(src)) {
     dispatchService.newDispatcher(src)
     emitNet("npwd-dispatch:notify", src, "You are now ~g~on~s~ duty as a dispatcher")
@@ -12,20 +12,28 @@ RegisterCommand("dispatchduty", (src: number) => {
     dispatchService.removeDispatcher(src)
     emitNet("npwd-dispatch:notify", src, "You are now ~r~off~s~ duty as a dispatcher")
   }
-}, true)
+}
 
-on('playerDropped', () => {
-  const src = global.source
+RegisterCommand("dispatchduty", addToDispatch, true)
+exports("addToDispatch", addToDispatch)
+
+function removeFromDispatch(src: number) {
   if (dispatchService.isPlayerDispatcher(src)) {
     dispatchService.removeDispatcher(src)
   }
+}
+
+on('playerDropped', () => {
+  const src = global.source
+  removeFromDispatch(src)
 })
+exports("removeFromDispatch", removeFromDispatch)
 
 const emergencyNumber = GetConvar('npwd_dispatch_number', '911')
 
 exp.npwd.onCall(emergencyNumber, async (ctx: OnCallExportCtx) => {
   const dispatcher = await dispatchService.getFirstAvailable(ctx.incomingCaller.source)
-  if(!dispatcher) {
+  if (!dispatcher) {
     ctx.reply("Sorry, there are no operators able to handle this call right now.")
     return ctx.exit()
   }
@@ -47,7 +55,7 @@ exp.npwd.onMessage(emergencyNumber, async (ctx: OnMessageExportCtx) => {
 
   const coords = GetEntityCoords(GetPlayerPed(ctx.source.toString()))
 
-  dispatchers.forEach(({number}) => {
+  dispatchers.forEach(({ number }) => {
     exp.npwd.emitMessage({
       senderNumber: emergencyNumber,
       targetNumber: number,

@@ -15,7 +15,7 @@ function addToDispatch(src: number) {
 }
 
 RegisterCommand("dispatchduty", addToDispatch, true)
-exports("addToDispatch", addToDispatch)
+exp("addToDispatch", addToDispatch)
 
 function removeFromDispatch(src: number) {
   if (dispatchService.isPlayerDispatcher(src)) {
@@ -27,7 +27,7 @@ on('playerDropped', () => {
   const src = global.source
   removeFromDispatch(src)
 })
-exports("removeFromDispatch", removeFromDispatch)
+exp("removeFromDispatch", removeFromDispatch)
 
 const emergencyNumber = GetConvar('npwd_dispatch_number', '911')
 
